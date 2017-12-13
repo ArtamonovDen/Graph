@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <set>
 
 class Graph
 {
@@ -13,6 +14,7 @@ public:
 	Graph(int);
 	Graph();
 	Graph(const std::string& filepath, const char);
+	Graph(const std::string& filepath, bool);
 	
 	~Graph();
 
@@ -49,13 +51,14 @@ public:
 
 	int * findBridges();
 	int ShortestPath(int from, int to);
-	std::vector<int> salesman(const std::string& filepath);
+	void salesman();
 
 	std::vector<std::pair<int, int>>   minSpanningTree(int root);
 	
 	
 private:
-	std::vector<int> computeSalesman(const int startVert);
+	//void computeSalesman(int startVert, int curPathCast, std::set<int> curPath, int root);
+	void computeSalesman(int startVert, int curPathCast, std::vector<int> curPath, int root);
 	void FindPath(int from, std::vector<int> &checkedVert);
 	int ** matrix;
 	int numVertex;

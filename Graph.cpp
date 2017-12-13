@@ -5,7 +5,10 @@
 #include <fstream>
 #include <vector>
 #include <queue>
+#include <set>
 #include <iostream>
+
+const int inf = 100000;
 
 Graph::Graph(int N)
 {
@@ -23,9 +26,11 @@ Graph::Graph(int N)
 }
 Graph::~Graph()
 {
-	delete matrix[numVertex];
+	//delete matrix[numVertex];
+	delete[] matrix;
 }
 Graph::Graph(const std::string& filepath, const char type){
+	//from list
 	std::fstream fin;
 	fin.open(filepath);
 	if (fin.is_open())
@@ -55,6 +60,38 @@ Graph::Graph(const std::string& filepath, const char type){
 
 	}
 
+}
+
+Graph::Graph(const std::string& filepath, bool a){
+	//from matrix
+	std::fstream fin;
+	fin.open(filepath);
+	if (fin.is_open())
+	{
+		int n;
+		fin >> n;
+		numVertex = n;
+
+		matrix = new int *[n];
+		for (int i = 0; i < n; i++){
+			matrix[i] = new int[n];
+			for (int j = 0; j < n; j++){
+				matrix[i][j] = 0;
+			}
+		}
+		for (int i = 0; i < n; i++){
+			for (int j = 0; j < n; j++){
+				int weight;
+				fin >> weight;
+				matrix[i][j] = weight;
+			}
+		}
+		
+
+		
+
+
+	}
 }
 
 
@@ -133,36 +170,113 @@ int * Graph::findBridges(){
 	return 0;
 }
 
-std::vector<int> Graph::salesman(const std::string& filepath){
-	std::fstream fin;
-	fin.open(filepath);
-	if (fin.is_open())
-	{
-		fin >> startVert;
-		std::vector<int> hamCyc;
-		std::vector<int> _hamCyc;
-		_hamCyc = computeSalesman(startVert);
 
-		hamCyc.reserve(hamCyc.size() + _hamCyc.size());
-		hamCyc.insert(hamCyc.end(), _hamCyc.begin(), _hamCyc.end());
+int finalPathCast = inf;
+std::vector<int> finalPath;
 
 
-	}		
-	return{ 1 };
+
+//void Graph::computeSalesman(int from, int curPathCast, std::set<int> curPath, int root){
+//
+//
+//
+//	for (int i = 0; i < numVertex; i++){
+//		if (matrix[from][i] != 0) {
+//			if ((curPath.size() == numVertex) && (i == root)){
+//				if (curPathCast + matrix[from][i] < finalPathCast){
+//					//finalPath.swap(curPath);
+//					if(!finalPath.empty())
+//						finalPath.erase(finalPath.begin(), finalPath.end());
+//					for (std::set<int>::iterator it = curPath.begin(); it != curPath.end(); ++it){
+//						finalPath.push_back(*it);
+//					}
+//					finalPathCast = curPathCast + matrix[from][i];
+//				}
+//			}
+//			else{
+//				if (curPath.count(i) == 0){
+//					std::set<int> newPath = curPath;
+//					newPath.insert(i);
+//					computeSalesman(i, curPathCast + matrix[from][i], newPath, root);
+//				}
+//
+//			}
+//		
+//		}
+//	}
+//	
+//}
+//
+//void Graph::salesman(){
+//	
+//	int root;
+//
+//		std::cin >> root;
+//		std::set<int> startPath;
+//		startPath.insert(root);
+//		computeSalesman(root, 0, startPath, root);
+//
+//
+//		std::cout <<"Final Cost: "<< finalPathCast << std::endl;
+//		std::cout << "Path: ";
+//		
+//		for (auto &i : finalPath)
+//			std::cout << ' ' << i;
+//
+//
+//}
+template <typename T>
+bool is_inVector(std::vector<T> vec, T val){
+	for (auto &it : vec){
+		if (it == val)
+			return 1;
+	}
+	return 0;
 }
 
-std::vector<int> Graph::computeSalesman(const int startV){
-	std::vector<int> _hamCyc;
+void Graph::computeSalesman(int from, int curPathCast, std::vector<int> curPath, int root){
+
 	for (int i = 0; i < numVertex; i++){
-		if (matrix[startV][i] != 0){
-			if (matrix[startV][i] == Graph::startVert)
-				///..
-			computeSalesman( matrix[startV][i] );
+		if (matrix[from][i] != 0) {
+			if ((curPath.size() == numVertex) && (i == root)){
+				if (curPathCast + matrix[from][i] < finalPathCast){
+					finalPath.swap(curPath);
+					finalPathCast = curPathCast + matrix[from][i];
+				}
+			}
+			else{
+				if (! is_inVector(curPath,i) ){
+					std::vector<int> newPath = curPath;
+					newPath.push_back(i);
+					computeSalesman(i, curPathCast + matrix[from][i], newPath, root);
+				}
+
+			}
+
 		}
-		
-			
 	}
-	return{ 1 };
+
+}
+
+void Graph::salesman(){
+
+	int root;
+
+	
+	std::vector<int> startPath;
+	std::cout << "Input the start Vertex: " << std::endl;
+	std::cin >> root;
+	startPath.push_back(root);
+	computeSalesman(root, 0, startPath, root);
+
+
+	std::cout << "Final Cost: " << finalPathCast << std::endl;
+	std::cout << "Path: ";
+
+	for (auto &i : finalPath)
+		std::cout << ' ' << i;
+
+
 }
 
 class V{
@@ -175,9 +289,6 @@ public:
 	int key;
 	int par;
 
-	/*bool operator < (V & right) const {
-	return this->key < right.key;
-	}*/
 };
 
 bool operator < (V right, V left){
@@ -186,7 +297,7 @@ bool operator < (V right, V left){
 
 
 
-const int inf = 100000;
+
 std::vector<std::pair<int, int>>  Graph::minSpanningTree(int root){
 	std::vector<std::pair<int, int>> A;
 	std::priority_queue<V> queueV;
